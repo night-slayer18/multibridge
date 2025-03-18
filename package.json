@@ -1,0 +1,49 @@
+{
+  "name": "multibrige",
+  "version": "1.0.0",
+  "description": "A multi-database connection framework with centralized configuration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [
+    "database",
+    "connection",
+    "framework",
+    "typescript",
+    "multi-database"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/night-slayer18/multibrige.git"
+  },
+  "author": "Samanuai A",
+  "license": "MIT",
+  "dependencies": {
+    "cassandra-driver": "^4.7.0",
+    "dotenv": "^16.3.0",
+    "mongodb": "^5.6.0",
+    "mysql2": "^3.3.0",
+    "pg": "^8.10.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.8.2"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/night-slayer18/multibrige/issues"
+  },
+  "homepage": "https://github.com/night-slayer18/multibrige#readme",
+  "directories": {
+    "test": "tests"
+  }
+}

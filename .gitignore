@@ -1,0 +1,43 @@
+# Node.js dependencies
+node_modules/
+
+# TypeScript build output
+dist/
+tsconfig.tsbuildinfo
+
+# Logs and temporary files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.DS_Store
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Jest cache and coverage reports
+coverage/
+jest.config.js
+jest.config.ts
+.cache/
+
+# MacOS system files
+Thumbs.db
+.DS_Store
+
+# Linting cache
+.eslintcache
+
+# Build artifacts
+*.tgz
