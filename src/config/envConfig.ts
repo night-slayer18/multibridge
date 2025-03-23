@@ -2,8 +2,7 @@ import dotenv from "dotenv";
 import path from "path";
 
 // Directly specify the path to your .env file
-const envPath = path.resolve(__dirname, "../../.env");
-dotenv.config({ path: envPath });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 export const envConfig = {
   CENTRAL_DB_HOST: process.env.CENTRAL_DB_HOST || "localhost",
