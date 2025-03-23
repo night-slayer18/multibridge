@@ -1,14 +1,22 @@
 import mysql from "mysql2/promise";
 
-export async function getMySQLConnection({ host, port, username, password, database, schema }: any) {
+export async function createMySQLConnection(config: {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  database: string;
+  schema: string;
+}): Promise<any> {
+  // Create a connection (or pool) with mysql2
   const connection = await mysql.createConnection({
-    host,
-    port,
-    user: username,
-    password,
-    database,
+    host: config.host,
+    port: config.port,
+    user: config.username,
+    password: config.password,
+    database: config.database,
   });
-
-  await connection.query(`USE ${schema}`);
+  // Use the specified schema (database) - in MySQL, typically "USE schema"
+  await connection.query(`USE ${config.schema}`);
   return connection;
 }
