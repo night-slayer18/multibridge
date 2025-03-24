@@ -1,4 +1,4 @@
-import { runWithTenant, ConnectVo } from "./tenantContext";
+import { runWithTenant, ConnectVo } from "./context/tenantContext";
 import { getConnection, closeConnection } from "./connections/connectionManager";
 import { executeQuery } from "./utils/executeQuery";
 

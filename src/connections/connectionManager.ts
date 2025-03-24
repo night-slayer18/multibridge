@@ -1,5 +1,5 @@
 import { fetchDBConfig } from "../config/dbConfig";
-import { getTenant, ConnectVo } from "../tenantContext";
+import { getTenant, ConnectVo } from "../context/tenantContext";
 import { createPostgresConnection } from "./postgres";
 import { createMySQLConnection } from "./mysql";
 import { createMongoDBConnection } from "./mongodb";
