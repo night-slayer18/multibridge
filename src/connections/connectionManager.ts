@@ -5,17 +5,17 @@ import { createMySQLConnection } from "./mysql";
 import { createMongoDBConnection } from "./mongodb";
 import { createCassandraConnection } from "./cassandra";
 
-const connectionCache: Map<string, any> = new Map();
+const connectionCache: Map<string, { connection: any; dbType: string }> = new Map();
 
 function generateCacheKey(appid: string, orgid: string, appdbname: string): string {
   return `${appid}-${orgid}-${appdbname}`;
 }
 
 /**
- * Returns a connection for the current tenant context.
- * If a connection is cached, it is reused.
+ * Retrieves the connection for the current tenant context.
+ * Returns an object containing both the connection instance and the dbType.
  */
-export async function getConnection(tenant?: ConnectVo): Promise<any> {
+export async function getConnection(tenant?: ConnectVo): Promise<{ connection: any; dbType: string }> {
   const currentTenant: ConnectVo | undefined = tenant || getTenant();
   if (!currentTenant) {
     throw new Error("No tenant context available");
@@ -24,17 +24,16 @@ export async function getConnection(tenant?: ConnectVo): Promise<any> {
   const cacheKey = generateCacheKey(appid, orgid, appdbname);
   if (connectionCache.has(cacheKey)) {
     console.log(`[MultiBrige] Reusing connection for ${cacheKey}`);
-    return connectionCache.get(cacheKey);
+    return connectionCache.get(cacheKey)!;
   }
-  // Fetch configuration from the central DB
   const dbConfig = await fetchDBConfig(appid, orgid);
   if (!dbConfig) {
     throw new Error(`No configuration found for appid: ${appid}, orgid: ${orgid}`);
   }
-  // Determine schema: use tenant.appdbname if provided, else fallback to default from central config.
   const schema = appdbname || dbConfig.schema;
   let connection: any;
-  switch (dbConfig.db_type) {
+  let dbType: string = dbConfig.db_type;
+  switch (dbType) {
     case "postgres":
       connection = await createPostgresConnection({
         host: dbConfig.host,
@@ -77,32 +76,47 @@ export async function getConnection(tenant?: ConnectVo): Promise<any> {
     default:
       throw new Error(`Unsupported database type: ${dbConfig.db_type}`);
   }
-  connectionCache.set(cacheKey, connection);
-  return connection;
+  const ret = { connection, dbType };
+  connectionCache.set(cacheKey, ret);
+  return ret;
 }
 
-/**
- * Closes the connection for the current tenant.
- */
-export async function closeConnection(tenant?: ConnectVo) {
+export async function closeConnection(tenant?: ConnectVo): Promise<void> {
   const currentTenant = tenant || getTenant();
   if (!currentTenant) return;
   const cacheKey = generateCacheKey(currentTenant.appid, currentTenant.orgid, currentTenant.appdbname);
   if (connectionCache.has(cacheKey)) {
-    const connection = connectionCache.get(cacheKey);
-    if (connection && connection.end) {
-      await connection.end();
-      console.log(`[MultiBridge] Connection closed for ${cacheKey}`);
+    const { connection, dbType } = connectionCache.get(cacheKey)!;
+    if (connection) {
+      if ((dbType === "postgres" || dbType === "mysql") && connection.end) {
+        await connection.end();
+        console.log(`[MultiBridge] SQL connection closed for ${cacheKey}`);
+      } else if (dbType === "mongodb" && connection.close) {
+        await connection.close();
+        console.log(`[MultiBridge] MongoDB connection closed for ${cacheKey}`);
+      } else if (dbType === "cassandra" && connection.shutdown) {
+        await connection.shutdown();
+        console.log(`[MultiBridge] Cassandra connection closed for ${cacheKey}`);
+      }
     }
     connectionCache.delete(cacheKey);
   }
 }
 
-export async function closeAllConnections() {
-  for (const [cacheKey, connection] of connectionCache) {
-    if (connection && connection.end) {
-      await connection.end();
-      console.log(`[MultiBridge] Connection closed for ${cacheKey}`);
+
+export async function closeAllConnections(): Promise<void> {
+  for (const [cacheKey, { connection, dbType }] of connectionCache.entries()) {
+    if (connection) {
+      if ((dbType === "postgres" || dbType === "mysql") && connection.end) {
+        await connection.end();
+        console.log(`[MultiBridge] SQL connection closed for ${cacheKey}`);
+      } else if (dbType === "mongodb" && connection.close) {
+        await connection.close();
+        console.log(`[MultiBridge] MongoDB connection closed for ${cacheKey}`);
+      } else if (dbType === "cassandra" && connection.shutdown) {
+        await connection.shutdown();
+        console.log(`[MultiBridge] Cassandra connection closed for ${cacheKey}`);
+      }
     }
   }
   connectionCache.clear();
