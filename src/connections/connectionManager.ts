@@ -97,3 +97,13 @@ export async function closeConnection(tenant?: ConnectVo) {
     connectionCache.delete(cacheKey);
   }
 }
+
+export async function closeAllConnections() {
+  for (const [cacheKey, connection] of connectionCache) {
+    if (connection && connection.end) {
+      await connection.end();
+      console.log(`[MultiBridge] Connection closed for ${cacheKey}`);
+    }
+  }
+  connectionCache.clear();
+}
