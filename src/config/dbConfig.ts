@@ -21,7 +21,7 @@ export async function fetchDBConfig(appId: string, orgId: string) {
     logger.info(`Fetched configuration for appid: ${appId}, orgid: ${orgId}`);
     return result.rows[0];
   } catch (error) {
-    logger.error(`Error fetching DB config: ${(error as Error).message}`);
+    logger.error(`Error fetching DB config: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
     throw error;
   }
 }
