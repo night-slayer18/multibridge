@@ -4,10 +4,11 @@ import { envConfig } from "../config/envConfig";
 const logger = winston.createLogger({
   level: envConfig.LOG_LEVEL,
   format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.printf(
-      ({ timestamp, level, message }) => `${timestamp} [${level.toUpperCase()}]: ${message}`
-    )
+    // Set a custom timestamp format
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    })
   ),
   transports: [new winston.transports.Console()],
 });
