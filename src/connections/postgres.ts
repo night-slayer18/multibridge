@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import logger from "../utils/loggers";
 
 export async function createPostgresConnection(config: {
   host: string;
@@ -15,7 +16,13 @@ export async function createPostgresConnection(config: {
     password: config.password,
     database: config.database,
   });
-  // Set search_path to the desired schema
-  await pool.query(`SET search_path TO ${config.schema}`);
-  return pool;
+  try {
+    // Set search_path to the desired schema
+    await pool.query(`SET search_path TO ${config.schema}`);
+    logger.info("Connected to PostgreSQL");
+    return pool;
+  } catch (error) {
+    logger.error(`Error connecting to PostgreSQL: ${(error as Error).message}`);
+    throw error;
+  }
 }

@@ -4,6 +4,7 @@ import { createPostgresConnection } from "./postgres";
 import { createMySQLConnection } from "./mysql";
 import { createMongoDBConnection } from "./mongodb";
 import { createCassandraConnection } from "./cassandra";
+import logger from "../utils/loggers";
 
 const connectionCache: Map<string, { connection: any; dbType: string }> = new Map();
 
@@ -23,7 +24,7 @@ export async function getConnection(tenant?: ConnectVo): Promise<{ connection: a
   const { appid, orgid, appdbname } = currentTenant;
   const cacheKey = generateCacheKey(appid, orgid, appdbname);
   if (connectionCache.has(cacheKey)) {
-    console.log(`[MultiBrige] Reusing connection for ${cacheKey}`);
+    logger.info(`[MultiBridge] Reusing connection for ${cacheKey}`);
     return connectionCache.get(cacheKey)!;
   }
   const dbConfig = await fetchDBConfig(appid, orgid);
@@ -33,48 +34,53 @@ export async function getConnection(tenant?: ConnectVo): Promise<{ connection: a
   const schema = appdbname || dbConfig.schema;
   let connection: any;
   let dbType: string = dbConfig.db_type;
-  switch (dbType) {
-    case "postgres":
-      connection = await createPostgresConnection({
-        host: dbConfig.host,
-        port: dbConfig.port,
-        username: dbConfig.username,
-        password: dbConfig.password,
-        database: dbConfig.database,
-        schema,
-      });
-      break;
-    case "mysql":
-      connection = await createMySQLConnection({
-        host: dbConfig.host,
-        port: dbConfig.port,
-        username: dbConfig.username,
-        password: dbConfig.password,
-        database: dbConfig.database,
-        schema,
-      });
-      break;
-    case "mongodb":
-      connection = await createMongoDBConnection({
-        host: dbConfig.host,
-        port: dbConfig.port,
-        username: dbConfig.username,
-        password: dbConfig.password,
-        database: dbConfig.database,
-      });
-      break;
-    case "cassandra":
-      connection = await createCassandraConnection({
-        host: dbConfig.host,
-        port: dbConfig.port,
-        username: dbConfig.username,
-        password: dbConfig.password,
-        database: dbConfig.database,
-        dataCenter: dbConfig.data_center,
-      });
-      break;
-    default:
-      throw new Error(`Unsupported database type: ${dbConfig.db_type}`);
+  try {
+    switch (dbType) {
+      case "postgres":
+        connection = await createPostgresConnection({
+          host: dbConfig.host,
+          port: dbConfig.port,
+          username: dbConfig.username,
+          password: dbConfig.password,
+          database: dbConfig.database,
+          schema,
+        });
+        break;
+      case "mysql":
+        connection = await createMySQLConnection({
+          host: dbConfig.host,
+          port: dbConfig.port,
+          username: dbConfig.username,
+          password: dbConfig.password,
+          database: dbConfig.database,
+          schema,
+        });
+        break;
+      case "mongodb":
+        connection = await createMongoDBConnection({
+          host: dbConfig.host,
+          port: dbConfig.port,
+          username: dbConfig.username,
+          password: dbConfig.password,
+          database: dbConfig.database,
+        });
+        break;
+      case "cassandra":
+        connection = await createCassandraConnection({
+          host: dbConfig.host,
+          port: dbConfig.port,
+          username: dbConfig.username,
+          password: dbConfig.password,
+          database: dbConfig.database,
+          dataCenter: dbConfig.data_center,
+        });
+        break;
+      default:
+        throw new Error(`Unsupported database type: ${dbConfig.db_type}`);
+    }
+  } catch (error) {
+    logger.error(`Error creating connection for ${cacheKey}: ${(error as Error).message}`);
+    throw error;
   }
   const ret = { connection, dbType };
   connectionCache.set(cacheKey, ret);
@@ -88,34 +94,41 @@ export async function closeConnection(tenant?: ConnectVo): Promise<void> {
   if (connectionCache.has(cacheKey)) {
     const { connection, dbType } = connectionCache.get(cacheKey)!;
     if (connection) {
-      if ((dbType === "postgres" || dbType === "mysql") && connection.end) {
-        await connection.end();
-        console.log(`[MultiBridge] SQL connection closed for ${cacheKey}`);
-      } else if (dbType === "mongodb" && connection.close) {
-        await connection.close();
-        console.log(`[MultiBridge] MongoDB connection closed for ${cacheKey}`);
-      } else if (dbType === "cassandra" && connection.shutdown) {
-        await connection.shutdown();
-        console.log(`[MultiBridge] Cassandra connection closed for ${cacheKey}`);
+      try {
+        if ((dbType === "postgres" || dbType === "mysql") && connection.end) {
+          await connection.end();
+          logger.info(`[MultiBridge] SQL connection closed for ${cacheKey}`);
+        } else if (dbType === "mongodb" && connection.close) {
+          await connection.close();
+          logger.info(`[MultiBridge] MongoDB connection closed for ${cacheKey}`);
+        } else if (dbType === "cassandra" && connection.shutdown) {
+          await connection.shutdown();
+          logger.info(`[MultiBridge] Cassandra connection closed for ${cacheKey}`);
+        }
+      } catch (error) {
+        logger.error(`Error closing connection for ${cacheKey}: ${(error as Error).message}`);
       }
     }
     connectionCache.delete(cacheKey);
   }
 }
 
-
 export async function closeAllConnections(): Promise<void> {
   for (const [cacheKey, { connection, dbType }] of connectionCache.entries()) {
     if (connection) {
-      if ((dbType === "postgres" || dbType === "mysql") && connection.end) {
-        await connection.end();
-        console.log(`[MultiBridge] SQL connection closed for ${cacheKey}`);
-      } else if (dbType === "mongodb" && connection.close) {
-        await connection.close();
-        console.log(`[MultiBridge] MongoDB connection closed for ${cacheKey}`);
-      } else if (dbType === "cassandra" && connection.shutdown) {
-        await connection.shutdown();
-        console.log(`[MultiBridge] Cassandra connection closed for ${cacheKey}`);
+      try {
+        if ((dbType === "postgres" || dbType === "mysql") && connection.end) {
+          await connection.end();
+          logger.info(`[MultiBridge] SQL connection closed for ${cacheKey}`);
+        } else if (dbType === "mongodb" && connection.close) {
+          await connection.close();
+          logger.info(`[MultiBridge] MongoDB connection closed for ${cacheKey}`);
+        } else if (dbType === "cassandra" && connection.shutdown) {
+          await connection.shutdown();
+          logger.info(`[MultiBridge] Cassandra connection closed for ${cacheKey}`);
+        }
+      } catch (error) {
+        logger.error(`Error closing connection for ${cacheKey}: ${(error as Error).message}`);
       }
     }
   }
