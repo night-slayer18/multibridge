@@ -13,6 +13,7 @@ CENTRAL_DB_PORT=5432
 CENTRAL_DB_USER=admin
 CENTRAL_DB_PASSWORD=password
 CENTRAL_DB_NAME=central_db
+CENTRAL_DB_TABLE=connections_config
 LOG_LEVEL=info
 ```
 
