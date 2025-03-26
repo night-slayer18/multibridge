@@ -12,10 +12,14 @@ const centralDB = new Pool({
 
 export async function fetchDBConfig(appId: string, orgId: string) {
   try {
-    const query = "SELECT * FROM connection_config WHERE app_id = $1 AND org_id = $2";
+    const tableName = envConfig.CENTRAL_DB_TABLE;
+    if (!tableName) {
+      throw new Error("CENTRAL_DB_TABLE is not set in the environment");
+    }
+    const query = `SELECT * FROM ${tableName} WHERE app_id = $1 AND org_id = $2`;
     const result = await centralDB.query(query, [appId, orgId]);
     if (result.rows.length === 0) {
-      logger.error(`No connection config found for app ${appId} and org ${orgId}`);
+      logger.error(`No connection config found for app ${appId} and org ${orgId} in the DB`);
       return null;
     }
     logger.info(`Fetched configuration for appid: ${appId}, orgid: ${orgId}`);
