@@ -15,7 +15,7 @@ MultiBridge is a multi-tenant database connection manager that supports PostgreS
 Install the package via npm:
 
 ```bash
-npm install multibrige
+npm install multibridge
 ```
 
 ## Usage
@@ -39,7 +39,7 @@ LOG_LEVEL=info
 Use the `runWithTenant` function to execute code in a tenant-aware context:
 
 ```typescript
-import { runWithTenant, ConnectVo } from "multibrige";
+import { runWithTenant, ConnectVo } from "multibridge";
 
 const tenant: ConnectVo = {
   appid: "appB",
@@ -57,7 +57,7 @@ await runWithTenant(tenant, async () => {
 Use the `executeQuery` function to execute queries in a tenant-aware context:
 
 ```typescript
-import { executeQuery } from "multibrige";
+import { executeQuery } from "multibridge";
 
 const result = await executeQuery("SELECT * FROM users WHERE id = $1", [userId]);
 console.log(result);
@@ -68,7 +68,7 @@ console.log(result);
 Use the `closeConnection` and `closeAllConnections` functions to close database connections:
 
 ```typescript
-import { closeConnection, closeAllConnections } from "multibrige";
+import { closeConnection, closeAllConnections } from "multibridge";
 
 // Close connection for the current tenant
 await closeConnection();

@@ -1,6 +1,6 @@
 # Example Usage of MultiBridge
 
-This example demonstrates how to use the `multibrige` package in a Node.js backend project to perform CRUD operations using multiple databases. We will use MongoDB for authentication (login/signup) and MySQL for CRUD operations related to a TODO app.
+This example demonstrates how to use the `multibridge` package in a Node.js backend project to perform CRUD operations using multiple databases. We will use MongoDB for authentication (login/signup) and MySQL for CRUD operations related to a TODO app.
 
 ## Prerequisites
 
@@ -43,8 +43,8 @@ LOG_LEVEL=info
 
 ```typescript
 import { Request, Response } from "express";
-import { runWithTenant, ConnectVo } from "multibrige";
-import { executeQuery } from "multibrige";
+import { runWithTenant, ConnectVo } from "multibridge";
+import { executeQuery } from "multibridge";
 
 const tenant: ConnectVo = {
   appid: "authApp",
@@ -105,8 +105,8 @@ export default router;
 
 ```typescript
 import { Request, Response } from "express";
-import { runWithTenant, ConnectVo } from "multibrige";
-import { executeQuery } from "multibrige";
+import { runWithTenant, ConnectVo } from "multibridge";
+import { executeQuery } from "multibridge";
 
 const tenant: ConnectVo = {
   appid: "todoApp",
@@ -205,4 +205,4 @@ app.listen(PORT, () => {
    npm start
    ```
 
-This example demonstrates how to use the `multibrige` package to manage multiple databases without writing separate code for each database connection or query execution. The central database contains the required configuration to identify which database to connect to, allowing you to focus on your application logic.
+This example demonstrates how to use the `multibridge` package to manage multiple databases without writing separate code for each database connection or query execution. The central database contains the required configuration to identify which database to connect to, allowing you to focus on your application logic.
