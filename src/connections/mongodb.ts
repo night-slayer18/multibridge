@@ -3,18 +3,29 @@ import logger from "../utils/loggers";
 
 export async function createMongoDBConnection(config: {
   host: string;
-  port: number;
+  port?: number;
   username: string;
   password: string;
   database: string;
 }): Promise<Db> {
-  // Construct the MongoDB URI; MongoDB doesn't use schemas as SQL does.
-  const uri = `mongodb://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}?authSource=admin`;
-  const client = new MongoClient(uri);
+  let uri: string;
+
+  if (config.host.endsWith(".mongodb.net")) {
+    // MongoDB Atlas (Cluster) using SRV
+    uri = `mongodb+srv://${config.username}:${config.password}@${config.host}/${config.database}?authSource=admin`;
+  } else {
+    // Self-hosted MongoDB (Local/Remote)
+    uri = `mongodb://${config.username}:${config.password}@${config.host}:${config.port ?? 27017}/${config.database}?authSource=admin`;
+  }
+
+  const client = new MongoClient(uri, {
+    connectTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 10000,
+  });
+
   try {
     await client.connect();
-    // Return the database object (this is analogous to a connection)
-    logger.info("Connected to MongoDB");
+    logger.info(`Connected to MongoDB at ${config.host}`);
     return client.db(config.database);
   } catch (error) {
     logger.error(`Error connecting to MongoDB: ${(error as Error).message}`);
