@@ -15,14 +15,32 @@ export async function createPostgresConnection(config: {
     user: config.username,
     password: config.password,
     database: config.database,
+    idleTimeoutMillis: 600000,      // e.g., 10 minutes, adjust as needed
+    connectionTimeoutMillis: 5000,  // e.g., 5 seconds
   });
+
+  // For every new connection, set the search_path
+  pool.on("connect", async (client) => {
+    try {
+      await client.query(`SET search_path TO ${config.schema}`);
+      logger.info(`Search path set to ${config.schema} for new connection`);
+    } catch (error) {
+      logger.error(`Failed to set search path on new connection: ${(error as Error).message}`);
+    }
+  });
+
+  // Test the pool by acquiring a client once
   try {
-    // Set search_path to the desired schema
-    await pool.query(`SET search_path TO ${config.schema}`);
-    logger.info("Connected to PostgreSQL");
+    const client = await pool.connect();
+    try {
+      await client.query(`SET search_path TO ${config.schema}`);
+      logger.info("Connected to PostgreSQL and search_path set");
+    } finally {
+      client.release();
+    }
     return pool;
   } catch (error) {
-    logger.error(`Error connecting to PostgreSQL: ${(error as Error).message}`);
+    logger.error(`Error establishing initial connection to PostgreSQL: ${(error as Error).message}`);
     throw error;
   }
 }
