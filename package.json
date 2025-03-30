@@ -1,6 +1,6 @@
 {
   "name": "multibridge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A multi-database connection framework with centralized configuration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
