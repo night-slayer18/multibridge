@@ -7,11 +7,11 @@ export async function createCassandraConnection(config: {
   username: string;
   password: string;
   database: string;  // For Cassandra, this is the keyspace.
-  dataCenter?: string;
+  dataCenter: string;
 }): Promise<cassandra.Client> {
   const client = new cassandra.Client({
     contactPoints: [config.host],
-    localDataCenter: config.dataCenter || "datacenter1",
+    localDataCenter: config.dataCenter,
     keyspace: config.database,
     credentials: { username: config.username, password: config.password },
   });

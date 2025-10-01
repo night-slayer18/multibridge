@@ -1,13 +1,18 @@
 import { Db, MongoClient } from "mongodb";
 import logger from "../utils/loggers";
 
+export interface MongoConnection {
+  client: MongoClient;
+  db: Db;
+}
+
 export async function createMongoDBConnection(config: {
   host: string;
   port?: number;
   username: string;
   password: string;
   database: string;
-}): Promise<Db> {
+}): Promise<MongoConnection> {
   let uri: string;
 
   if (config.host.endsWith(".mongodb.net")) {
@@ -26,7 +31,7 @@ export async function createMongoDBConnection(config: {
   try {
     await client.connect();
     logger.info(`Connected to MongoDB at ${config.host}`);
-    return client.db(config.database);
+    return { client, db: client.db(config.database) };
   } catch (error) {
     logger.error(`Error connecting to MongoDB: ${(error as Error).message}`);
     throw error;

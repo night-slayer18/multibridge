@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { envConfig } from "./envConfig";
 import logger from "../utils/loggers";
+import { CentralDBConfig } from "../types/dbTypes";
 
 const centralDB = new Pool({
   host: envConfig.CENTRAL_DB_HOST,
@@ -10,11 +11,15 @@ const centralDB = new Pool({
   database: envConfig.CENTRAL_DB_NAME,
 });
 
-export async function fetchDBConfig(appId: string, orgId: string) {
+export async function fetchDBConfig(appId: string, orgId: string): Promise<CentralDBConfig | null> {
   try {
-    const tableName = envConfig.CENTRAL_DB_TABLE;
+  const tableName = envConfig.CENTRAL_DB_TABLE;
     if (!tableName) {
       throw new Error("CENTRAL_DB_TABLE is not set in the environment");
+    }
+    // Ensure tableName is a safe SQL identifier (alphanumeric and underscores)
+    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      throw new Error("CENTRAL_DB_TABLE contains invalid characters");
     }
     const query = `SELECT * FROM ${tableName} WHERE app_id = $1 AND org_id = $2`;
     const result = await centralDB.query(query, [appId, orgId]);
@@ -23,7 +28,7 @@ export async function fetchDBConfig(appId: string, orgId: string) {
       return null;
     }
     logger.info(`Fetched configuration for appid: ${appId}, orgid: ${orgId}`);
-    return result.rows[0];
+    return result.rows[0] as CentralDBConfig;
   } catch (error) {
     logger.error(`Error fetching DB config: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
     throw error;
