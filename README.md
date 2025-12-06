@@ -446,5 +446,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 💬 [GitHub Discussions](https://github.com/night-slayer18/multibridge/discussions)
 
 ---
-
-Made with ❤️ by [Samanuai A](https://github.com/night-slayer18)
